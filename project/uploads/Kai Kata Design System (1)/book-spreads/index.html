@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAK Rising — Kai Kata Book Spreads</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="book.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="image-slot.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="spreads.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+function Book() {
+  const [i, setI] = useState(() => {
+    const v = parseInt(localStorage.getItem("rak-spread") || "0", 10);
+    return isNaN(v) ? 0 : Math.max(0, Math.min(window.SPREADS.length - 1, v));
+  });
+  const bookRef = useRef(null);
+  const scalerRef = useRef(null);
+  const go = (n) => setI(Math.max(0, Math.min(window.SPREADS.length - 1, n)));
+
+  useEffect(() => { localStorage.setItem("rak-spread", String(i)); }, [i]);
+
+  // re-trigger entrance animation on spread change
+  useEffect(() => {
+    const b = bookRef.current; if (!b) return;
+    b.removeAttribute("data-active");
+    const t = setTimeout(() => b.setAttribute("data-active", ""), 40);
+    return () => clearTimeout(t);
+  }, [i]);
+
+  // fit-to-viewport scaling
+  useEffect(() => {
+    const fit = () => {
+      const el = scalerRef.current; if (!el) return;
+      const s = Math.min((window.innerWidth - 130) / 1520, (window.innerHeight - 110) / 1000);
+      el.style.transform = `scale(${Math.max(0.1, s)})`;
+    };
+    fit();
+    requestAnimationFrame(fit);
+    const ro = new ResizeObserver(fit);
+    ro.observe(document.documentElement);
+    window.addEventListener("resize", fit);
+    window.addEventListener("load", fit);
+    return () => { ro.disconnect(); window.removeEventListener("resize", fit); window.removeEventListener("load", fit); };
+  }, []);
+
+  // keyboard nav
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "ArrowRight") go(i + 1);
+      else if (e.key === "ArrowLeft") go(i - 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [i]);
+
+  const sp = window.SPREADS[i];
+
+  return (
+    <div className="book-stage">
+      <div className="titlebar">Kai Kata · RAK Rising · {sp.label}</div>
+      <div className="book-scaler" ref={scalerRef}>
+        <div className={"book" + (sp.bleed ? " is-bleed" : "")} ref={bookRef} key={sp.id}>
+          {sp.render()}
+        </div>
+      </div>
+
+      <button className="nav-btn prev" onClick={() => go(i - 1)} disabled={i === 0} aria-label="Previous spread" style={{ opacity: i === 0 ? .35 : 1 }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+      <button className="nav-btn next" onClick={() => go(i + 1)} disabled={i === window.SPREADS.length - 1} aria-label="Next spread" style={{ opacity: i === window.SPREADS.length - 1 ? .35 : 1 }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+
+      <div className="dots">
+        {window.SPREADS.map((s, n) => (
+          <button key={s.id} className={n === i ? "on" : ""} onClick={() => go(n)} aria-label={s.label}></button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Book />);
+</script>
+</body>
+</html>

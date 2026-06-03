@@ -1,0 +1,78 @@
+/* ============================================================================
+   Kai Kata — colors & type foundation
+   Reconstructed token + typography sheet for the RAK Rising book spreads.
+   Luxury pearl + deep-Gulf + gold. Cormorant Garamond (display) / Manrope (text).
+============================================================================ */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Manrope:wght@300;400;500;600;700&display=swap");
+
+:root{
+  /* surfaces */
+  --pearl:#fbf8f2;
+  --pearl-2:#f1e9da;
+  --surface:#ffffff;
+  --gulf-deep:#0b2433;
+
+  /* gold */
+  --gold:#c1933f;
+  --gold-bright:#e0bd72;
+
+  /* ink */
+  --primary:#0b2433;
+  --fg-strong:#26302f;
+  --fg-muted:#5a6469;
+  --fg-subtle:#8c949a;
+
+  /* lines */
+  --rule:rgba(11,36,51,.14);
+  --rule-gold:rgba(193,147,63,.5);
+
+  /* scrims for photo legibility */
+  --scrim:linear-gradient(180deg, rgba(8,28,40,0) 38%, rgba(8,28,40,.62) 100%);
+  --scrim-soft:linear-gradient(180deg, rgba(8,28,40,0) 55%, rgba(8,28,40,.42) 100%);
+
+  /* elevation */
+  --shadow-page:0 50px 110px -40px rgba(0,0,0,.6), 0 8px 30px -12px rgba(0,0,0,.35);
+
+  /* type families */
+  --font-display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-body:"Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-label:"Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* motion */
+  --dur:.4s;
+  --dur-slow:.72s;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+
+/* ---- Type scale -----------------------------------------------------------*/
+.kk-display{ font-family:var(--font-display); font-weight:600; line-height:.96; color:var(--primary); letter-spacing:-.01em; }
+
+.kk-h1{ font-family:var(--font-display); font-weight:600; font-size:52px; line-height:1.02; color:var(--primary); letter-spacing:-.012em; }
+.kk-h2{ font-family:var(--font-display); font-weight:600; font-size:38px; line-height:1.06; color:var(--primary); letter-spacing:-.01em; }
+
+.kk-lead{ font-family:var(--font-body); font-weight:300; font-size:20px; line-height:1.58; color:var(--fg-strong); }
+.kk-body{ font-family:var(--font-body); font-weight:400; font-size:16.5px; line-height:1.62; color:var(--fg-muted); }
+.kk-small{ font-family:var(--font-body); font-weight:400; font-size:13px; line-height:1.5; color:var(--fg-muted); }
+
+.kk-quote{ font-family:var(--font-display); font-style:italic; font-weight:500; font-size:28px; line-height:1.3; color:var(--primary); text-wrap:balance; }
+.page--dark .kk-quote{ color:var(--pearl); }
+
+.kk-stat{ font-family:var(--font-display); font-weight:500; line-height:.9; color:var(--primary); letter-spacing:-.01em; }
+
+.kk-eyebrow{ font-family:var(--font-label); font-weight:600; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--gold); }
+.kk-label{ font-family:var(--font-label); font-weight:600; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--fg-subtle); }
+
+/* dark-page text colour shifts */
+.page--dark .kk-h1, .page--dark .kk-h2, .page--dark .kk-display, .page--dark .kk-stat{ color:var(--pearl); }
+.page--dark .kk-body, .page--dark .kk-lead, .page--dark .kk-small{ color:rgba(251,248,242,.82); }
+.page--dark .kk-eyebrow{ color:var(--gold-bright); }
+
+/* ---- Pearl rule (thin gold line with centred pearl dot) -------------------*/
+.kk-pearl-rule{ position:relative; height:1px; background:linear-gradient(90deg, transparent, var(--gold) 18%, var(--gold) 82%, transparent); color:var(--gold); }
+.kk-pearl-rule__dot{ position:absolute; top:50%; left:50%; width:7px; height:7px; border-radius:50%;
+  background:currentColor; transform:translate(-50%,-50%) rotate(45deg); box-shadow:0 0 0 3px var(--pearl); }
+.page--dark .kk-pearl-rule__dot{ box-shadow:0 0 0 3px var(--gulf-deep); }
+
+/* base reset for the book root */
+*{ box-sizing:border-box; }
+body{ margin:0; font-family:var(--font-body); background:#081c28; color:var(--fg-strong); -webkit-font-smoothing:antialiased; }
