@@ -1,0 +1,147 @@
+/* ============================================================================
+   Kai Kata — Book Spreads UI kit
+   Layout + component styles for RAK Rising coffee-table spreads.
+   Pairs with ../../colors_and_type.css (load that first).
+============================================================================ */
+
+/* ---- Stage / viewer -------------------------------------------------------*/
+.book-stage{
+  position:fixed; inset:0;
+  background:#081c28;            /* deep near-black Gulf for letterboxing */
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.book-scaler{ transform-origin:center center; }
+.book{
+  width:1520px; height:1000px;
+  display:grid; grid-template-columns:1fr 1fr;
+  background:var(--pearl);
+  box-shadow:var(--shadow-page);
+  position:relative;
+}
+/* center spine */
+.book::after{
+  content:""; position:absolute; top:0; bottom:0; left:50%; width:64px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg, rgba(8,28,40,0) 0%, rgba(8,28,40,.12) 46%, rgba(8,28,40,.16) 50%, rgba(8,28,40,.12) 54%, rgba(8,28,40,0) 100%);
+  pointer-events:none; z-index:5;
+}
+.book.is-bleed::after{ display:none; }
+
+/* a single page */
+.page{ position:relative; overflow:hidden; padding:74px 72px; box-sizing:border-box; display:flex; flex-direction:column; }
+.page--dark{ background:var(--gulf-deep); color:var(--pearl); }
+.page--sand{ background:var(--pearl-2); }
+.page--pad-0{ padding:0; }
+
+/* full-bleed spread spanning both columns */
+.bleed{ grid-column:1 / -1; position:relative; overflow:hidden; }
+
+/* ---- Folio (page number) --------------------------------------------------*/
+.folio{
+  position:absolute; bottom:45px; font-family:var(--font-label); font-size:11px;
+  letter-spacing:.22em; text-transform:uppercase; color:var(--fg-subtle);
+  padding:8px 12px;
+}
+.folio--l{ left:72px } .folio--r{ right:72px; text-align:right }
+.page--dark .folio{ color:rgba(251,248,242,.5) }
+
+/* ---- Photo (image-slot wrapper) ------------------------------------------*/
+.photo{ position:relative; width:100%; height:100%; background:#0c2b3d; }
+.photo image-slot{ width:100%; height:100%; display:block; }
+.photo .photo-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+  animation:imgFadeIn 0.6s ease-out forwards; }
+@keyframes imgFadeIn{ from{ opacity:0; } to{ opacity:1; } }
+/* art-directed placeholder for spreads awaiting photography */
+.photo-ph{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; text-align:center; padding:48px; background:var(--gulf-deep); }
+.photo-ph::after{ content:""; position:absolute; inset:22px; border:1px solid rgba(201,162,75,.32); pointer-events:none; }
+.photo-ph__label{ font-family:var(--font-label); font-weight:500; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--gold-bright); }
+.photo-ph__desc{ font-family:var(--font-body); font-style:italic; font-size:17px; line-height:1.5; max-width:34ch; color:rgba(251,248,242,.55); }
+.photo .scrim{ position:absolute; inset:0; background:var(--scrim); pointer-events:none; }
+.photo .scrim--soft{ background:var(--scrim-soft); }
+.photo-cap{ position:absolute; left:40px; right:40px; bottom:34px; color:var(--pearl); z-index:2; }
+.photo-cap .kk-eyebrow{ color:var(--gold-bright); }
+.photo-cap h3{ font-family:var(--font-body); font-weight:500; font-size:24px; line-height:1.25; margin:8px 0 0; color:#fff; }
+
+/* ---- Stat block -----------------------------------------------------------*/
+.stat{ border-top:1px solid var(--rule-gold); padding-top:14px; }
+.stat .n{ font-family:var(--font-body); font-weight:300; font-size:62px; line-height:.9; color:var(--primary); letter-spacing:-.01em; }
+.stat .u{ font-size:.42em; color:var(--gold); }
+.stat .c{ font-family:var(--font-body); font-size:14.5px; color:var(--fg-muted); margin-top:8px; }
+.page--dark .stat .n{ color:var(--pearl) } .page--dark .stat .u{ color:var(--gold-bright) }
+.page--dark .stat .c{ color:rgba(251,248,242,.72) } .page--dark .stat{ border-color:rgba(201,162,75,.55) }
+
+/* ---- Fact list ------------------------------------------------------------*/
+.facts{ list-style:none; margin:0; padding:0; }
+.facts li{ font-family:var(--font-body); font-size:16px; line-height:1.5; color:var(--fg-strong); padding:11px 0; border-bottom:1px solid var(--rule); display:flex; gap:14px; }
+.facts li::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--gold); margin-top:9px; flex:none; }
+.page--dark .facts li{ color:rgba(251,248,242,.9); border-color:rgba(251,248,242,.16) }
+
+/* ---- Title plate w/ corner flourishes ------------------------------------*/
+.plate{ position:relative; padding:34px 44px; text-align:center; align-self:center; }
+.plate .corner{ position:absolute; width:42px; height:42px; color:var(--gold); }
+.plate .corner.tl{ top:0; left:0 } .plate .corner.br{ bottom:0; right:0; transform:rotate(180deg) }
+.page--dark .plate .corner{ color:var(--gold-bright) }
+
+/* ---- Wave divider ---------------------------------------------------------*/
+.wave{ height:22px; color:var(--gold); }
+.wave img{ height:100%; }
+.page--dark .wave{ color:var(--gold-bright) }
+
+/* ---- Timeline -------------------------------------------------------------*/
+.timeline{ position:relative; margin-top:30px; }
+.timeline .axis{ position:absolute; left:0; right:0; top:7px; height:1px; background:var(--rule-gold); opacity:.6; }
+.tl-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:26px; }
+.tl-item{ position:relative; padding-top:26px; }
+.tl-item::before{ content:""; position:absolute; top:3px; left:0; width:9px; height:9px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 4px var(--pearl); }
+.tl-year{ font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--gulf-deep); }
+.tl-text{ font-family:var(--font-body); font-size:14px; line-height:1.45; color:var(--fg-muted); margin-top:6px; }
+
+/* ---- Services / benefit rows ---------------------------------------------*/
+.benefits{ list-style:none; margin:18px 0 0; padding:0; }
+.benefits li{ display:flex; align-items:baseline; gap:16px; padding:15px 0; border-bottom:1px solid var(--rule); }
+.benefits .k{ font-family:var(--font-display); font-weight:700; font-size:26px; color:var(--gold); min-width:96px; }
+.benefits .v{ font-family:var(--font-body); font-size:16.5px; color:var(--fg-strong); }
+
+/* ---- Cover ---------------------------------------------------------------*/
+.cover-title{ font-family:var(--font-display); font-weight:700; color:var(--gold-bright);
+  font-size:128px; line-height:.92; letter-spacing:.02em; text-shadow:0 2px 24px rgba(0,0,0,.35);
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,.5)); }
+.cover-sub{ font-family:var(--font-body); font-weight:300; font-style:italic; font-size:30px; color:#fff; margin-top:8px; }
+.cover-kick{ font-family:var(--font-label); font-weight:500; font-size:14px; letter-spacing:.34em; text-transform:uppercase; color:#fff; }
+
+/* ---- QR / contact plate ---------------------------------------------------*/
+.qr{ width:120px; height:120px; border:1px solid var(--rule-gold); display:grid; place-items:center;
+  font-family:var(--font-label); font-size:10px; letter-spacing:.2em; color:var(--fg-subtle); background:var(--surface); }
+
+/* ---- Viewer chrome --------------------------------------------------------*/
+.nav-btn{ position:fixed; top:50%; transform:translateY(-50%); z-index:40;
+  width:52px; height:52px; border-radius:50%; border:1px solid rgba(201,162,75,.5);
+  background:rgba(8,28,40,.4); color:var(--gold-bright); cursor:pointer; backdrop-filter:blur(6px);
+  display:grid; place-items:center; transition:all var(--dur) var(--ease); }
+.nav-btn:hover{ background:rgba(201,162,75,.16); border-color:var(--gold-bright); }
+.nav-btn:active{ transform:translateY(-50%) scale(.95); }
+.nav-btn.prev{ left:26px } .nav-btn.next{ right:26px }
+.nav-btn svg{ width:22px; height:22px; }
+
+.dots{ position:fixed; bottom:22px; left:50%; transform:translateX(-50%); z-index:40;
+  display:flex; gap:10px; align-items:center; padding:10px 18px; border-radius:999px;
+  background:rgba(8,28,40,.42); backdrop-filter:blur(6px); }
+.dots button{ width:8px; height:8px; border-radius:50%; border:0; padding:0; cursor:pointer;
+  background:rgba(251,248,242,.35); transition:all var(--dur) var(--ease); }
+.dots button.on{ background:var(--gold-bright); width:22px; border-radius:5px; }
+.titlebar{ position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:40;
+  font-family:var(--font-label); font-size:11px; letter-spacing:.26em; text-transform:uppercase;
+  color:rgba(251,248,242,.6); }
+
+/* spread entrance — animate ONLY transform (never opacity) so content is
+   always visible even if the animation timeline doesn't advance. */
+@media (prefers-reduced-motion: no-preference){
+  .anim{ animation: kkRise var(--dur-slow) var(--ease) both; }
+  .anim.d1{ animation-delay:.06s }
+  .anim.d2{ animation-delay:.14s }
+  .anim.d3{ animation-delay:.22s }
+  .anim.d4{ animation-delay:.30s }
+}
+@keyframes kkRise{ from{ transform:translateY(13px); } to{ transform:none; } }
