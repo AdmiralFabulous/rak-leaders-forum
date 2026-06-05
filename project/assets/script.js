@@ -1,4 +1,4 @@
-/* The Leaders Forum — RAK 2026 · interactions */
+/* The Leaders Forum, RAK 2026 · interactions */
 (function () {
   "use strict";
 
@@ -106,9 +106,86 @@
     });
   }
 
+  /* ---- Programme phase accordion (Morning / Midday / Afternoon / Evening) ---- */
+  document.querySelectorAll(".tl__phase-head").forEach(function (head) {
+    function toggle() {
+      var phase = head.closest(".tl__phase");
+      var open = phase.classList.toggle("open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    head.addEventListener("click", toggle);
+    head.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+    });
+  });
+
+  /* ---- Partnership intro choreography (play on scroll into view) ---- */
+  var ptiersStage = document.getElementById("ptiersStage");
+  if (ptiersStage) {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || !("IntersectionObserver" in window)) {
+      ptiersStage.classList.add("play");
+    } else {
+      var pso = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { ptiersStage.classList.add("play"); pso.unobserve(ptiersStage); }
+        });
+      }, { threshold: 0.18 });
+      pso.observe(ptiersStage);
+    }
+  }
+
+  /* ---- Partnership tier accordion (click / keyboard to pin open) ---- */
+  document.querySelectorAll(".ptier__head").forEach(function (head) {
+    function toggle() {
+      var tier = head.closest(".ptier");
+      var open = tier.classList.toggle("open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    head.addEventListener("click", toggle);
+    head.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+    });
+  });
+
+  /* ---- Partner CTA -> prefill contact form (subject + message) ---- */
+  document.querySelectorAll(".ptier__cta").forEach(function (cta) {
+    cta.addEventListener("click", function () {
+      var tier = cta.closest(".ptier");
+      var nameEl = tier && tier.querySelector(".ptier__name");
+      var name = nameEl ? nameEl.textContent.trim() : "";
+      var subject = document.querySelector('#applyForm [name="subject"]');
+      var message = document.querySelector('#applyForm [name="message"]');
+      if (subject) {
+        var opt = Array.prototype.slice.call(subject.options).find(function (o) {
+          return /sponsorship/i.test(o.textContent);
+        });
+        if (opt) { subject.value = opt.value || opt.textContent; }
+        var sf = subject.closest(".field"); if (sf) sf.classList.remove("invalid");
+      }
+      if (message && name) {
+        message.value = "I would like to enquire regarding the " + name + " opportunities.";
+        var mf = message.closest(".field"); if (mf) mf.classList.remove("invalid");
+      }
+    });
+  });
+
   /* ---- Footer year ---- */
   var y = document.getElementById("yr");
   if (y) y.textContent = new Date().getFullYear();
+
+  /* ---- Lazy-load background videos AFTER first paint (don't block load) ---- */
+  function bootVideos() {
+    var vids = document.querySelectorAll("video[data-src]");
+    vids.forEach(function (v) {
+      if (v.dataset.src && !v.src) {
+        v.src = v.dataset.src;
+        v.load();
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+      }
+    });
+  }
 
   /* ---- Hero video: slowed, cinematic playback ---- */
   var heroVid = document.querySelector(".hero__video");
@@ -116,6 +193,11 @@
     var slow = function () { heroVid.playbackRate = 0.5; };
     heroVid.addEventListener("loadedmetadata", slow);
     heroVid.addEventListener("play", slow);
-    slow();
+  }
+
+  if (document.readyState === "complete") {
+    setTimeout(bootVideos, 60);
+  } else {
+    window.addEventListener("load", function () { setTimeout(bootVideos, 60); });
   }
 })();
