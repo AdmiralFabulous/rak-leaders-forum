@@ -18,55 +18,22 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
-      - name: Resolve the live site (by the URL name) and deploy --prod
+      - name: Deploy to Netlify (prod)
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -e
           SITE_NAME="kaikata-rakleadersforum"
           FALLBACK_ID="81ee9b8a-aa60-4cbc-bc6b-62e946c85e83"
 
-          # Find the site whose Netlify name matches the live URL.
+          # Resolve the site by the name in the live URL (so deploys can't drift
+          # to the wrong target); fall back to the known id if the lookup fails.
           SITE_ID=$(netlify api listSites --data '{}' \
             | jq -r --arg n "$SITE_NAME" '.[] | select(.name==$n) | .id' | head -n1)
           if [ -z "$SITE_ID" ] || [ "$SITE_ID" = "null" ]; then
-            echo "No site named $SITE_NAME found; using fallback id."
             SITE_ID="$FALLBACK_ID"
           fi
-          echo "Deploying to site id: $SITE_ID"
+          echo "Deploying to site id: $SITE_ID ($SITE_NAME)"
 
           netlify deploy --dir . --prod --site "$SITE_ID" \
-            --message "Deploy from GitHub commit ${{ github.sha }}" 2>&1 | tee /tmp/deploy.log
-
-          # Report exactly which site + URL we published to, so it's verifiable.
-          INFO=$(netlify api getSite --data "{\"site_id\":\"$SITE_ID\"}" || echo '{}')
-          NAME=$(echo "$INFO" | jq -r '.name // "?"')
-          URL=$(echo "$INFO" | jq -r '.ssl_url // .url // "?"')
-          jq -n --arg n "$NAME" --arg u "$URL" --arg i "$SITE_ID" \
-            '{title:"DEPLOY TARGET", body:("name: "+$n+"\nurl: "+$u+"\nsite_id: "+$i)}' \
-            | curl -s -X POST -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/${{ github.repository }}/issues" -d @- >/dev/null
-          echo "Published to $NAME ($URL)"
-
-      - name: Verify the LIVE site is serving the new content
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          sleep 10
-          LIVE="https://kaikata-rakleadersforum.netlify.app/"
-          HTML=$(curl -s -L --max-time 30 "$LIVE")
-          AGE=$(curl -s -I -L --max-time 30 "$LIVE" | grep -iE 'age:|cache-control:|x-nf-request-id:|etag:' | tr -d '\r')
-          c_byinv=$(printf '%s' "$HTML" | grep -c "By invitation" || true)
-          c_ptier=$(printf '%s' "$HTML" | grep -c "ptier" || true)
-          c_phase=$(printf '%s' "$HTML" | grep -c "tl__phase" || true)
-          # keynote swap marker: the 13:55 row should now be the Integrated Resort Lifestyle keynote
-          swap=$(printf '%s' "$HTML" | grep -oE '13:55</div><div class="tl__body"><div class="t">Keynote · CEO, [^<]+' | head -1)
-          bytes=$(printf '%s' "$HTML" | wc -c)
-          BODY=$(printf 'live: %s\nbytes: %s\nBy invitation: %s\nptier: %s\ntl__phase: %s\n13:55 keynote: %s\n\nheaders:\n%s' \
-            "$LIVE" "$bytes" "$c_byinv" "$c_ptier" "$c_phase" "$swap" "$AGE")
-          jq -n --arg b "$BODY" '{title:"LIVE CHECK", body:$b}' \
-            | curl -s -X POST -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/${{ github.repository }}/issues" -d @- >/dev/null
-          echo "$BODY"
-
+            --message "Deploy from GitHub commit ${{ github.sha }}"
