@@ -21,13 +21,8 @@ jobs:
       - name: Deploy to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 81ee9b8a-aa60-4cbc-bc6b-62e946c85e83
         run: |
-          netlify deploy \
-            --dir . \
-            --prod \
-            --site rak-leaders-forum \
-            --message "Deploy from GitHub commit ${{ github.sha }}" \
-            2>&1 || \
           netlify deploy \
             --dir . \
             --prod \
