@@ -1,4 +1,4 @@
-/* The Leaders Forum — RAK 2026 · interactions */
+/* The Leaders Forum, RAK 2026 · interactions */
 (function () {
   "use strict";
 
@@ -110,12 +110,30 @@
   var y = document.getElementById("yr");
   if (y) y.textContent = new Date().getFullYear();
 
+  /* ---- Lazy-load background videos AFTER first paint (don't block load) ---- */
+  function bootVideos() {
+    var vids = document.querySelectorAll("video[data-src]");
+    vids.forEach(function (v) {
+      if (v.dataset.src && !v.src) {
+        v.src = v.dataset.src;
+        v.load();
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+      }
+    });
+  }
+
   /* ---- Hero video: slowed, cinematic playback ---- */
   var heroVid = document.querySelector(".hero__video");
   if (heroVid) {
     var slow = function () { heroVid.playbackRate = 0.5; };
     heroVid.addEventListener("loadedmetadata", slow);
     heroVid.addEventListener("play", slow);
-    slow();
+  }
+
+  if (document.readyState === "complete") {
+    setTimeout(bootVideos, 60);
+  } else {
+    window.addEventListener("load", function () { setTimeout(bootVideos, 60); });
   }
 })();

@@ -1,6 +1,6 @@
 /* =========================================================================
-   THE LEADERS FORUM — RAS AL KHAIMAH 2026
-   Design system — luxury, sovereign, family-office grade.
+   THE LEADERS FORUM, RAS AL KHAIMAH 2026
+   Design system, luxury, sovereign, family-office grade.
    Palette: deep navy + warm gold + cream.  Type: Cormorant Garamond / Manrope.
    ========================================================================= */
 
@@ -187,6 +187,9 @@ h2.display em { font-style: italic; color: var(--gold); font-weight: 500; }
   font-style: italic;
   flex: none;
 }
+.brand__logo { height: 42px; width: auto; display: block; flex: none; }
+.footer__brand .brand__logo { height: 48px; }
+.drawer .brand__logo { height: 44px; }
 .brand__text { display: flex; flex-direction: column; line-height: 1.2; }
 .brand__name { font-family: var(--serif); font-size: 1.12rem; color: var(--cream-pure); letter-spacing: 0.01em; white-space: nowrap; }
 .brand__sub { font-size: 0.56rem; letter-spacing: 0.34em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
@@ -378,7 +381,7 @@ h2.display em { font-style: italic; color: var(--gold); font-weight: 500; }
 .theme--video p { color: var(--on-dark); }
 
 /* =========================================================================
-   INVESTMENT CASE — stat cards
+   INVESTMENT CASE, stat cards
    ========================================================================= */
 .invest__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: clamp(3rem, 6vw, 4.5rem); }
 .icard {
@@ -397,7 +400,7 @@ h2.display em { font-style: italic; color: var(--gold); font-weight: 500; }
 .icard .desc { font-size: 0.9rem; color: var(--on-dark-soft); font-weight: 300; line-height: 1.65; }
 
 /* =========================================================================
-   PROGRAMME — timeline
+   PROGRAMME, timeline
    ========================================================================= */
 .prog__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1.5rem; }
 .prog__day { text-align: right; }

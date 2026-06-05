@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RAK Rising — Kai Kata Book Spreads</title>
+<title>Dawn of the North, Kai Kata Book Spreads</title>
 <link rel="stylesheet" href="colors_and_type.css">
 <link rel="stylesheet" href="book.css">
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -68,7 +68,7 @@ function Book() {
 
   return (
     <div className="book-stage">
-      <div className="titlebar">Kai Kata · RAK Rising · {sp.label}</div>
+      <div className="titlebar">Kai Kata · Dawn of the North · {sp.label}</div>
       <div className="book-scaler" ref={scalerRef}>
         <div className={"book" + (sp.bleed ? " is-bleed" : "")} ref={bookRef} key={sp.id}>
           {sp.render()}
