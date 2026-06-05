@@ -1,5 +1,5 @@
 /* ============================================================================
-   Kai Kata — shared spread primitives
+   Kai Kata, shared spread primitives
    Exported to window for use by spreads.jsx + index.html
 ============================================================================ */
 const { useState, useEffect } = React;
@@ -43,7 +43,7 @@ function WaveDivider({ width = 320, style }) {
   );
 }
 
-function Folio({ side = "l", n, label = "RAK Rising" }) {
+function Folio({ side = "l", n, label = "Dawn of the North" }) {
   return <div className={`folio folio--${side}`}>{String(n).padStart(2, "0")} · {label}</div>;
 }
 
@@ -58,7 +58,7 @@ function Stat({ n, unit, caption }) {
 }
 
 /* Photograph slot with optional protection scrim + caption */
-function Photo({ id, placeholder, src, flip, pos, eyebrow, title, scrim = "scrim", children, style }) {
+function Photo({ id, placeholder, src, flip, pos, eyebrow, title, scrim = "scrim", align, children, style }) {
   return (
     <div className="photo" style={style}>
       {src
@@ -69,7 +69,7 @@ function Photo({ id, placeholder, src, flip, pos, eyebrow, title, scrim = "scrim
           </div>}
       {src && (eyebrow || title) && <div className={`scrim ${scrim === "soft" ? "scrim--soft" : ""}`}></div>}
       {(eyebrow || title) && (
-        <div className="photo-cap">
+        <div className="photo-cap" style={align ? { textAlign: align, alignItems: align === "right" ? "flex-end" : align === "center" ? "center" : "flex-start" } : null}>
           {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
           {title && <h3>{title}</h3>}
         </div>

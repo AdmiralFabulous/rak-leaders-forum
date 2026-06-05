@@ -1,5 +1,5 @@
 /* ============================================================================
-   Kai Kata — Book Spreads UI kit
+   Kai Kata, Book Spreads UI kit
    Layout + component styles for RAK Rising coffee-table spreads.
    Pairs with ../../colors_and_type.css (load that first).
 ============================================================================ */
@@ -60,7 +60,7 @@
 .photo-ph__desc{ font-family:var(--font-body); font-style:italic; font-size:17px; line-height:1.5; max-width:34ch; color:rgba(251,248,242,.55); }
 .photo .scrim{ position:absolute; inset:0; background:var(--scrim); pointer-events:none; }
 .photo .scrim--soft{ background:var(--scrim-soft); }
-.photo-cap{ position:absolute; left:40px; right:40px; bottom:34px; color:var(--pearl); z-index:2; }
+.photo-cap{ position:absolute; left:40px; right:40px; bottom:34px; color:var(--pearl); z-index:2; text-align:right; }
 .photo-cap .kk-eyebrow{ color:var(--gold-bright); }
 .photo-cap h3{ font-family:var(--font-body); font-weight:500; font-size:24px; line-height:1.25; margin:8px 0 0; color:#fff; }
 
@@ -97,6 +97,27 @@
 .tl-item::before{ content:""; position:absolute; top:3px; left:0; width:9px; height:9px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 4px var(--pearl); }
 .tl-year{ font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--gulf-deep); }
 .tl-text{ font-family:var(--font-body); font-size:14px; line-height:1.45; color:var(--fg-muted); margin-top:6px; }
+
+/* ---- Timeline v2 (editorial, category-coded, multi-column) ----------------*/
+.timeline2 .tl2-legend{
+  display:flex; flex-wrap:wrap; justify-content:center; gap:8px 18px;
+  margin:20px auto 0; max-width:1180px;
+}
+.tl2-leg{ display:inline-flex; align-items:center; gap:7px; font-family:var(--font-label);
+  font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--fg-muted); }
+.tl2-leg i{ width:8px; height:8px; border-radius:50%; background:var(--cat); flex:none; }
+
+.tl2-wrap{ flex:1; display:flex; align-items:center; margin-top:26px; }
+.tl2-flow{ width:100%; column-gap:48px; }
+.tl2-item{ break-inside:avoid; -webkit-column-break-inside:avoid;
+  border-left:2px solid var(--cat); padding:1px 0 1px 16px; margin-bottom:18px; }
+.tl2-head{ display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; }
+.tl2-year{ font-family:var(--font-display); font-weight:700; font-size:24px; line-height:1;
+  color:var(--gulf-deep); letter-spacing:-.01em; }
+.tl2-chip{ font-family:var(--font-label); font-size:8.5px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--cat); border:1px solid color-mix(in srgb, var(--cat) 45%, transparent);
+  padding:2px 6px; border-radius:2px; white-space:nowrap; }
+.tl2-text{ font-family:var(--font-body); font-size:12.5px; line-height:1.55; color:var(--fg-muted); margin-top:5px; }
 
 /* ---- Services / benefit rows ---------------------------------------------*/
 .benefits{ list-style:none; margin:18px 0 0; padding:0; }
@@ -135,7 +156,7 @@
   font-family:var(--font-label); font-size:11px; letter-spacing:.26em; text-transform:uppercase;
   color:rgba(251,248,242,.6); }
 
-/* spread entrance — animate ONLY transform (never opacity) so content is
+/* spread entrance, animate ONLY transform (never opacity) so content is
    always visible even if the animation timeline doesn't advance. */
 @media (prefers-reduced-motion: no-preference){
   .anim{ animation: kkRise var(--dur-slow) var(--ease) both; }
