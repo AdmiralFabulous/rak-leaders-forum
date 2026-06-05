@@ -18,12 +18,33 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
-      - name: Deploy to Netlify
+      - name: Resolve the live site (by the URL name) and deploy --prod
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: 81ee9b8a-aa60-4cbc-bc6b-62e946c85e83
+          GH_TOKEN: ${{ github.token }}
         run: |
-          netlify deploy \
-            --dir . \
-            --prod \
-            --message "Deploy from GitHub commit ${{ github.sha }}"
+          set -e
+          SITE_NAME="kaikata-rakleadersforum"
+          FALLBACK_ID="81ee9b8a-aa60-4cbc-bc6b-62e946c85e83"
+
+          # Find the site whose Netlify name matches the live URL.
+          SITE_ID=$(netlify api listSites --data '{}' \
+            | jq -r --arg n "$SITE_NAME" '.[] | select(.name==$n) | .id' | head -n1)
+          if [ -z "$SITE_ID" ] || [ "$SITE_ID" = "null" ]; then
+            echo "No site named $SITE_NAME found; using fallback id."
+            SITE_ID="$FALLBACK_ID"
+          fi
+          echo "Deploying to site id: $SITE_ID"
+
+          netlify deploy --dir . --prod --site "$SITE_ID" \
+            --message "Deploy from GitHub commit ${{ github.sha }}" 2>&1 | tee /tmp/deploy.log
+
+          # Report exactly which site + URL we published to, so it's verifiable.
+          INFO=$(netlify api getSite --data "{\"site_id\":\"$SITE_ID\"}" || echo '{}')
+          NAME=$(echo "$INFO" | jq -r '.name // "?"')
+          URL=$(echo "$INFO" | jq -r '.ssl_url // .url // "?"')
+          jq -n --arg n "$NAME" --arg u "$URL" --arg i "$SITE_ID" \
+            '{title:"DEPLOY TARGET", body:("name: "+$n+"\nurl: "+$u+"\nsite_id: "+$i)}' \
+            | curl -s -X POST -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${{ github.repository }}/issues" -d @- >/dev/null
+          echo "Published to $NAME ($URL)"
