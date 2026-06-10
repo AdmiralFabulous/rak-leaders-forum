@@ -45,13 +45,19 @@ jobs:
 
       - name: Smoke-test form delivery (opt-in)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.test_form }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          RESP=$(curl -s -L --max-time 45 \
+          RESP=$(curl -s -L --max-time 45 -w "\nHTTP_FINAL:%{http_code} URL:%{url_effective}" \
             -X POST "https://script.google.com/macros/s/AKfycbyCkmtFsjuO-u4rjVXi8ICr-mLc-gy-ZijUQlSCe3JxvNB0yxB2lJYJYxtJ3864Ld6F/exec" \
             --data-urlencode "name=CI Smoke Test" \
             --data-urlencode "email=ci-test@example.com" \
             --data-urlencode "subject=TEST — automated delivery check (safe to ignore)" \
             --data-urlencode "message=Automated test confirming the form endpoint appends to the Sheet and emails ao@swissdragons.com. No action needed.")
           echo "Response: $RESP"
+          # Report the raw response so it can be inspected even when CI logs are unavailable.
+          jq -n --arg b "$(printf '%s' "$RESP" | head -c 5000)" '{title:"FORM TEST RESPONSE", body:("```\n"+$b+"\n```")}' \
+            | curl -s -X POST -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${{ github.repository }}/issues" -d @- >/dev/null
           echo "$RESP" | grep -q '"ok":true' && echo "FORM DELIVERY OK" || { echo "FORM DELIVERY FAILED"; exit 1; }
