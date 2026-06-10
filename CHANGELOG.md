@@ -3,6 +3,55 @@
 Live site: https://kaikata-rakleadersforum.netlify.app
 Deploys automatically from `main` via GitHub Actions → Netlify.
 
+## v2.5 — 2026-06-10 · Content update from the design handoff
+
+### Changed
+- **Forum date is now 22 October 2026** everywhere (was 12 November): meta
+  description, hero kicker + meta strip, At-a-Glance, programme header
+  (Thursday 22 October 2026), footer.
+- **Three WHYs in the hero panel** — gold italic Q&A strip (Why Ras Al
+  Khaimah? / Why now? / Why the Leaders Forum 2026?) between the CTAs and
+  the meta strip.
+- **Book tag renamed** to "Dawn of the North" (matches the book's cover).
+- **Programme: all four phases open by default** — the full itinerary is
+  visible without clicking through each phase.
+- **Membership copy rewritten** — "reserved circle… invitation and selective
+  review only… privileged access" lead, plus the refined gateway paragraphs
+  (elevates the quality of the conversation; intentionally selective; every
+  delegate matters).
+- **Venue rewritten** — InterContinental Ras Al Khaimah Mina Al Arab Resort
+  & Spa (opened 2022; where the Gulf, the terracotta desert and the Hajar
+  Mountains converge; 45 minutes from Dubai); the three venue image
+  drop-zones removed in favour of a clean single-column layout.
+- **Panel 04** comma removed ("…belongs to the world and what comes next…").
+- **Footer attribution** added: RAK Leaders Club and The Leaders Forum are
+  products of Kai Kata FZE.
+- Form payload now also records the submitting page URL and timestamp.
+
+### Preserved against the design baseline
+- Netlify Forms registration (attributes + honeypot) and dual-channel
+  delivery, which the design bundle predates.
+- The keynote-time consistency fix: the sponsor "Stage" benefit references
+  the **13:55** real estate keynote (the design's copy still said 15:30,
+  which is the Business Zone keynote).
+
+## v2.4 — 2026-06-10 · Dual form delivery (Netlify Forms) + CC
+
+### Added
+- **Netlify Forms as a second delivery channel.** The form is registered with
+  Netlify (`data-netlify`, honeypot anti-spam); every enquiry now goes to BOTH
+  the Google Apps Script (Sheet + email) and the Netlify Forms dashboard.
+  Submission succeeds if either channel delivers, so a single outage can't
+  lose an enquiry.
+- **Email notifications on the Netlify channel** to ao@swissdragons.com and
+  mather.alexj@gmail.com, provisioned automatically (idempotently) by CI on
+  every deploy.
+- CI smoke test now exercises both channels and reports the raw responses.
+
+### Fixed
+- The CI Apps Script test followed Google's 302 redirect while still forcing
+  POST, producing a false failure (405); now downgrades to GET as browsers do.
+
 ## v2.3 — 2026-06-05 · Working enquiry form + dynamic subjects
 
 ### Added
