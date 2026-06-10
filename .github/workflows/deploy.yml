@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      test_form:
+        description: "Also POST a labelled TEST enquiry to verify Sheet + email delivery"
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -37,3 +42,16 @@ jobs:
 
           netlify deploy --dir . --prod --site "$SITE_ID" \
             --message "Deploy from GitHub commit ${{ github.sha }}"
+
+      - name: Smoke-test form delivery (opt-in)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.test_form }}
+        run: |
+          set -e
+          RESP=$(curl -s -L --max-time 45 \
+            -X POST "https://script.google.com/macros/s/AKfycbyCkmtFsjuO-u4rjVXi8ICr-mLc-gy-ZijUQlSCe3JxvNB0yxB2lJYJYxtJ3864Ld6F/exec" \
+            --data-urlencode "name=CI Smoke Test" \
+            --data-urlencode "email=ci-test@example.com" \
+            --data-urlencode "subject=TEST — automated delivery check (safe to ignore)" \
+            --data-urlencode "message=Automated test confirming the form endpoint appends to the Sheet and emails ao@swissdragons.com. No action needed.")
+          echo "Response: $RESP"
+          echo "$RESP" | grep -q '"ok":true' && echo "FORM DELIVERY OK" || { echo "FORM DELIVERY FAILED"; exit 1; }
