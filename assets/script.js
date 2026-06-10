@@ -60,7 +60,8 @@
     counters.forEach(function (c) { cio.observe(c); });
   }
 
-  /* ---- Form validation + success ---- */
+  /* ---- Form validation + delivery (Google Apps Script -> Sheet + email) ---- */
+  var FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbyCkmtFsjuO-u4rjVXi8ICr-mLc-gy-ZijUQlSCe3JxvNB0yxB2lJYJYxtJ3864Ld6F/exec";
   var form = document.getElementById("applyForm");
   if (form) {
     var success = form.querySelector(".form__success");
@@ -86,6 +87,17 @@
       });
     });
 
+    function showSuccess() {
+      var grid = form.querySelector(".form__fields");
+      if (grid) grid.style.display = "none";
+      if (success) {
+        success.classList.add("show");
+        var name = (form.querySelector('[name="firstName"]') || {}).value || "";
+        var nm = success.querySelector("[data-name]");
+        if (nm && name) nm.textContent = name.trim() + ", thank";
+      }
+    }
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var allOk = true;
@@ -95,16 +107,46 @@
         if (firstBad) firstBad.focus();
         return;
       }
-      var grid = form.querySelector(".form__fields");
-      if (grid) grid.style.display = "none";
-      if (success) {
-        success.classList.add("show");
-        var name = (form.querySelector('[name="firstName"]') || {}).value || "";
-        var nm = success.querySelector("[data-name]");
-        if (nm && name) nm.textContent = name.trim() + ", thank";
-      }
+
+      var btn = form.querySelector('button[type="submit"]');
+      var btnHtml = btn ? btn.innerHTML : "";
+      if (btn) { btn.disabled = true; btn.innerHTML = "Sending…"; }
+
+      var get = function (n) { return ((form.querySelector('[name="' + n + '"]') || {}).value || "").trim(); };
+      var extras = [];
+      if (get("org")) extras.push("Organisation: " + get("org"));
+      if (get("phone")) extras.push("Phone: " + get("phone"));
+      var fd = new FormData();
+      fd.append("name", (get("firstName") + " " + get("lastName")).trim());
+      fd.append("email", get("email"));
+      fd.append("subject", get("subject"));
+      fd.append("message", get("message") + (extras.length ? "\n\n" + extras.join("\n") : ""));
+
+      fetch(FORM_ENDPOINT, { method: "POST", body: fd })
+        .then(function () { showSuccess(); })
+        .catch(function () {
+          // Delivery failed (offline / endpoint unreachable): keep the form so
+          // nothing is lost, restore the button, and tell the user.
+          if (btn) { btn.disabled = false; btn.innerHTML = btnHtml; }
+          alert("We could not send your message right now. Please email ao@swissdragons.com directly, or try again in a moment.");
+        });
     });
   }
+
+  /* ---- Shortcut CTAs -> prefill the form subject (data-subject) ---- */
+  document.querySelectorAll('a[href="#contact"][data-subject]').forEach(function (a) {
+    a.addEventListener("click", function () {
+      var subject = document.querySelector('#applyForm [name="subject"]');
+      if (!subject) return;
+      var want = a.getAttribute("data-subject");
+      var opt = Array.prototype.slice.call(subject.options).find(function (o) {
+        return (o.value || o.textContent).trim() === want;
+      });
+      subject.value = opt ? (opt.value || opt.textContent) : want;
+      var sf = subject.closest(".field");
+      if (sf) sf.classList.remove("invalid");
+    });
+  });
 
   /* ---- Programme phase accordion (Morning / Midday / Afternoon / Evening) ---- */
   document.querySelectorAll(".tl__phase-head").forEach(function (head) {
