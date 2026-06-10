@@ -124,6 +124,8 @@
       fd.append("email", get("email"));
       fd.append("subject", get("subject"));
       fd.append("message", fullMessage);
+      fd.append("page", window.location.href);
+      fd.append("submittedAt", new Date().toISOString());
       var sendScript = fetch(FORM_ENDPOINT, { method: "POST", body: fd })
         .then(function (r) { if (!r.ok) throw new Error("script " + r.status); });
 

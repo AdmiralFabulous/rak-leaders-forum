@@ -3,23 +3,6 @@
 Live site: https://kaikata-rakleadersforum.netlify.app
 Deploys automatically from `main` via GitHub Actions → Netlify.
 
-## v2.4 — 2026-06-10 · Dual form delivery (Netlify Forms) + CC
-
-### Added
-- **Netlify Forms as a second delivery channel.** The form is registered with
-  Netlify (`data-netlify`, honeypot anti-spam); every enquiry now goes to BOTH
-  the Google Apps Script (Sheet + email) and the Netlify Forms dashboard.
-  Submission succeeds if either channel delivers, so a single outage can't
-  lose an enquiry.
-- **Email notifications on the Netlify channel** to ao@swissdragons.com and
-  mather.alexj@gmail.com, provisioned automatically (idempotently) by CI on
-  every deploy.
-- CI smoke test now exercises both channels and reports the raw responses.
-
-### Fixed
-- The CI Apps Script test followed Google's 302 redirect while still forcing
-  POST, producing a false failure (405); now downgrades to GET as browsers do.
-
 ## v2.3 — 2026-06-05 · Working enquiry form + dynamic subjects
 
 ### Added

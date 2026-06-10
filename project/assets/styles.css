@@ -297,6 +297,12 @@ h2.display em { font-style: italic; color: var(--gold); font-weight: 500; }
   color: var(--on-dark-soft); font-weight: 300; line-height: 1.8;
 }
 .hero__cta { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2.4rem; }
+/* Three WHYs strip in hero panel */
+.hero__whys { display: flex; flex-direction: column; gap: 0.55rem; margin: 1.6rem 0 0; padding-top: 1.5rem; border-top: 1px solid var(--navy-line); }
+.hero__why { display: flex; gap: 0.75rem; align-items: baseline; font-size: 0.88rem; line-height: 1.5; }
+.hero__why-q { color: var(--gold); font-weight: 600; white-space: nowrap; }
+.hero__why-a { color: var(--on-dark-soft); font-weight: 300; font-style: italic; }
+
 .hero__meta {
   display: flex; flex-wrap: wrap; gap: clamp(1.4rem, 4vw, 3.2rem);
   margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--navy-line);
@@ -553,7 +559,7 @@ h2.display em { font-style: italic; color: var(--gold); font-weight: 500; }
 /* =========================================================================
    VENUE
    ========================================================================= */
-.venue__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+.venue__grid { display: grid; grid-template-columns: 1fr; gap: clamp(2rem, 5vw, 4rem); max-width: 760px; }
 .venue__media { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(2, 1fr); gap: 1rem; }
 .venue__media image-slot { width: 100%; }
 .venue__media .big { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
