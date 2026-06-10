@@ -116,20 +116,36 @@
       var extras = [];
       if (get("org")) extras.push("Organisation: " + get("org"));
       if (get("phone")) extras.push("Phone: " + get("phone"));
+      var fullMessage = get("message") + (extras.length ? "\n\n" + extras.join("\n") : "");
+
+      // Delivery 1: Google Apps Script -> Sheet row + email
       var fd = new FormData();
       fd.append("name", (get("firstName") + " " + get("lastName")).trim());
       fd.append("email", get("email"));
       fd.append("subject", get("subject"));
-      fd.append("message", get("message") + (extras.length ? "\n\n" + extras.join("\n") : ""));
+      fd.append("message", fullMessage);
+      var sendScript = fetch(FORM_ENDPOINT, { method: "POST", body: fd })
+        .then(function (r) { if (!r.ok) throw new Error("script " + r.status); });
 
-      fetch(FORM_ENDPOINT, { method: "POST", body: fd })
-        .then(function () { showSuccess(); })
-        .catch(function () {
-          // Delivery failed (offline / endpoint unreachable): keep the form so
-          // nothing is lost, restore the button, and tell the user.
-          if (btn) { btn.disabled = false; btn.innerHTML = btnHtml; }
-          alert("We could not send your message right now. Please email ao@swissdragons.com directly, or try again in a moment.");
-        });
+      // Delivery 2: Netlify Forms -> dashboard capture + email notifications
+      var nf = new URLSearchParams();
+      nf.append("form-name", "enquiries");
+      ["firstName", "lastName", "org", "email", "phone", "subject", "message"].forEach(function (n) {
+        nf.append(n, get(n));
+      });
+      var sendNetlify = fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: nf.toString(),
+      }).then(function (r) { if (!r.ok) throw new Error("netlify " + r.status); });
+
+      // Success if EITHER channel delivers; fail only if both do.
+      Promise.allSettled([sendScript, sendNetlify]).then(function (results) {
+        var delivered = results.some(function (r) { return r.status === "fulfilled"; });
+        if (delivered) { showSuccess(); return; }
+        if (btn) { btn.disabled = false; btn.innerHTML = btnHtml; }
+        alert("We could not send your message right now. Please email ao@swissdragons.com directly, or try again in a moment.");
+      });
     });
   }
 

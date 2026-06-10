@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       test_form:
-        description: "Also POST a labelled TEST enquiry to verify Sheet + email delivery"
+        description: "Also POST a labelled TEST enquiry to verify delivery (Apps Script + Netlify Forms)"
         type: boolean
         default: false
 
@@ -24,6 +24,7 @@ jobs:
         run: npm install -g netlify-cli
 
       - name: Deploy to Netlify (prod)
+        id: deploy
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: |
@@ -39,9 +40,31 @@ jobs:
             SITE_ID="$FALLBACK_ID"
           fi
           echo "Deploying to site id: $SITE_ID ($SITE_NAME)"
+          echo "site_id=$SITE_ID" >> "$GITHUB_OUTPUT"
 
           netlify deploy --dir . --prod --site "$SITE_ID" \
             --message "Deploy from GitHub commit ${{ github.sha }}"
+
+      - name: Ensure Netlify form email notifications (idempotent)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          set -e
+          SITE_ID="${{ steps.deploy.outputs.site_id }}"
+          HOOKS=$(curl -s -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            "https://api.netlify.com/api/v1/hooks?site_id=$SITE_ID")
+          for ADDR in "ao@swissdragons.com" "mather.alexj@gmail.com"; do
+            EXISTS=$(echo "$HOOKS" | jq -r --arg a "$ADDR" \
+              '[.[] | select(.type=="email" and .event=="submission_created" and (.data.email==$a))] | length')
+            if [ "$EXISTS" -eq 0 ]; then
+              curl -s -X POST -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" -H "Content-Type: application/json" \
+                "https://api.netlify.com/api/v1/hooks?site_id=$SITE_ID" \
+                -d "{\"site_id\":\"$SITE_ID\",\"type\":\"email\",\"event\":\"submission_created\",\"data\":{\"email\":\"$ADDR\"}}" >/dev/null
+              echo "created submission notification -> $ADDR"
+            else
+              echo "notification already exists -> $ADDR"
+            fi
+          done
 
       - name: Smoke-test form delivery (opt-in)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.test_form }}
@@ -49,15 +72,36 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          RESP=$(curl -s -L --max-time 45 -w "\nHTTP_FINAL:%{http_code} URL:%{url_effective}" \
-            -X POST "https://script.google.com/macros/s/AKfycbyCkmtFsjuO-u4rjVXi8ICr-mLc-gy-ZijUQlSCe3JxvNB0yxB2lJYJYxtJ3864Ld6F/exec" \
+          # NOTE: no -X POST — curl must downgrade to GET on the Apps Script 302
+          # redirect (forcing POST on the echo host returns 405).
+          SCRIPT_RESP=$(curl -s -L --max-time 45 -w "\nHTTP_FINAL:%{http_code}" \
+            "https://script.google.com/macros/s/AKfycbyCkmtFsjuO-u4rjVXi8ICr-mLc-gy-ZijUQlSCe3JxvNB0yxB2lJYJYxtJ3864Ld6F/exec" \
             --data-urlencode "name=CI Smoke Test" \
             --data-urlencode "email=ci-test@example.com" \
             --data-urlencode "subject=TEST — automated delivery check (safe to ignore)" \
-            --data-urlencode "message=Automated test confirming the form endpoint appends to the Sheet and emails ao@swissdragons.com. No action needed.")
-          echo "Response: $RESP"
-          # Report the raw response so it can be inspected even when CI logs are unavailable.
-          jq -n --arg b "$(printf '%s' "$RESP" | head -c 5000)" '{title:"FORM TEST RESPONSE", body:("```\n"+$b+"\n```")}' \
+            --data-urlencode "message=Automated test of the Apps Script channel (Sheet row + email). No action needed.")
+          echo "Apps Script: $SCRIPT_RESP"
+
+          NETLIFY_RESP=$(curl -s --max-time 45 -w "\nHTTP_FINAL:%{http_code}" \
+            "https://kaikata-rakleadersforum.netlify.app/" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "form-name=enquiries" \
+            --data-urlencode "firstName=CI" \
+            --data-urlencode "lastName=Smoke Test" \
+            --data-urlencode "email=ci-test@example.com" \
+            --data-urlencode "subject=TEST — automated delivery check (safe to ignore)" \
+            --data-urlencode "message=Automated test of the Netlify Forms channel. No action needed.")
+          NETLIFY_CODE=$(printf '%s' "$NETLIFY_RESP" | grep -oE 'HTTP_FINAL:[0-9]+' | cut -d: -f2)
+          echo "Netlify Forms final HTTP: $NETLIFY_CODE"
+
+          BODY=$(printf 'APPS SCRIPT:\n%s\n\nNETLIFY FORMS HTTP: %s\n' \
+            "$(printf '%s' "$SCRIPT_RESP" | head -c 3000)" "$NETLIFY_CODE")
+          jq -n --arg b "$BODY" '{title:"FORM TEST RESPONSE", body:("```\n"+$b+"\n```")}' \
             | curl -s -X POST -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github+json" \
                 "https://api.github.com/repos/${{ github.repository }}/issues" -d @- >/dev/null
-          echo "$RESP" | grep -q '"ok":true' && echo "FORM DELIVERY OK" || { echo "FORM DELIVERY FAILED"; exit 1; }
+
+          OK1=0; OK2=0
+          echo "$SCRIPT_RESP" | grep -q '"ok":true' && OK1=1
+          { [ "$NETLIFY_CODE" = "200" ] || [ "$NETLIFY_CODE" = "303" ] || [ "$NETLIFY_CODE" = "302" ]; } && OK2=1
+          echo "Apps Script OK=$OK1 · Netlify Forms OK=$OK2"
+          [ "$OK1" = "1" ] || [ "$OK2" = "1" ] || { echo "BOTH CHANNELS FAILED"; exit 1; }

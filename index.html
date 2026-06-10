@@ -595,7 +595,9 @@ Ras Al Khaimah is not a concept. It is a thirty-year record of sovereign executi
         </div>
       </div>
 
-      <form class="form" id="applyForm" novalidate>
+      <form class="form" id="applyForm" name="enquiries" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+        <input type="hidden" name="form-name" value="enquiries" />
+        <p style="display:none" aria-hidden="true"><label>Leave this empty <input name="bot-field" /></label></p>
         <div class="form__fields" style="display:contents;">
           <div class="field"><label>First Name <span class="req">*</span></label><input type="text" name="firstName" required /><span class="field__err">Please enter your first name.</span></div>
           <div class="field"><label>Last Name <span class="req">*</span></label><input type="text" name="lastName" required /><span class="field__err">Please enter your last name.</span></div>
