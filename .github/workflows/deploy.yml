@@ -23,8 +23,8 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
-      - name: Deploy to Netlify (prod)
-        id: deploy
+      - name: Resolve site + enable form detection
+        id: site
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: |
@@ -39,11 +39,34 @@ jobs:
           if [ -z "$SITE_ID" ] || [ "$SITE_ID" = "null" ]; then
             SITE_ID="$FALLBACK_ID"
           fi
-          echo "Deploying to site id: $SITE_ID ($SITE_NAME)"
           echo "site_id=$SITE_ID" >> "$GITHUB_OUTPUT"
 
+          # Form detection must be ON before the deploy, or the form in
+          # index.html is never registered and POSTs return 404.
+          BEFORE=$(curl -s -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            "https://api.netlify.com/api/v1/sites/$SITE_ID" | jq -c '.processing_settings')
+          echo "processing_settings before: $BEFORE"
+          curl -s -X PATCH -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" -H "Content-Type: application/json" \
+            "https://api.netlify.com/api/v1/sites/$SITE_ID" \
+            -d '{"processing_settings":{"forms":{"enabled":true},"html":{"forms":true},"skip_processing":false}}' \
+            | jq -c '.processing_settings // empty' || true
+
+      - name: Deploy to Netlify (prod)
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          set -e
+          SITE_ID="${{ steps.site.outputs.site_id }}"
+          echo "site_id=$SITE_ID" >> "$GITHUB_OUTPUT"
           netlify deploy --dir . --prod --site "$SITE_ID" \
             --message "Deploy from GitHub commit ${{ github.sha }}"
+
+          # Verify the form actually registered with this deploy.
+          sleep 5
+          FORMS=$(curl -s -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            "https://api.netlify.com/api/v1/sites/$SITE_ID/forms" | jq -r '[.[].name] | join(", ")')
+          echo "Registered Netlify forms: ${FORMS:-NONE}"
 
       - name: Ensure Netlify form email notifications (idempotent)
         env:
@@ -70,8 +93,12 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.test_form }}
         env:
           GH_TOKEN: ${{ github.token }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: |
           set -e
+          FORMS=$(curl -s -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            "https://api.netlify.com/api/v1/sites/${{ steps.deploy.outputs.site_id }}/forms" \
+            | jq -r '[.[].name] | join(", ")')
           # NOTE: no -X POST — curl must downgrade to GET on the Apps Script 302
           # redirect (forcing POST on the echo host returns 405).
           SCRIPT_RESP=$(curl -s -L --max-time 45 -w "\nHTTP_FINAL:%{http_code}" \
@@ -94,8 +121,8 @@ jobs:
           NETLIFY_CODE=$(printf '%s' "$NETLIFY_RESP" | grep -oE 'HTTP_FINAL:[0-9]+' | cut -d: -f2)
           echo "Netlify Forms final HTTP: $NETLIFY_CODE"
 
-          BODY=$(printf 'APPS SCRIPT:\n%s\n\nNETLIFY FORMS HTTP: %s\n' \
-            "$(printf '%s' "$SCRIPT_RESP" | head -c 3000)" "$NETLIFY_CODE")
+          BODY=$(printf 'APPS SCRIPT:\n%s\n\nNETLIFY FORMS HTTP: %s\nREGISTERED FORMS: %s\n' \
+            "$(printf '%s' "$SCRIPT_RESP" | head -c 1000)" "$NETLIFY_CODE" "${FORMS:-NONE}")
           jq -n --arg b "$BODY" '{title:"FORM TEST RESPONSE", body:("```\n"+$b+"\n```")}' \
             | curl -s -X POST -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github+json" \
                 "https://api.github.com/repos/${{ github.repository }}/issues" -d @- >/dev/null
