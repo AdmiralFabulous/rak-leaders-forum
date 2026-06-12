@@ -3,6 +3,13 @@
 Live site: https://kaikata-rakleadersforum.netlify.app
 Deploys automatically from `main` via GitHub Actions → Netlify.
 
+## v2.6 — 2026-06-12 · Favicon + all accordions open by default
+
+- **Favicon** — RLC shield `favicon.ico` / `favicon.png` / `apple-touch-icon` now linked in
+  `<head>`; the crest shows in the browser tab and on mobile home-screen saves.
+- **All 9 partner tiers open by default** — the full sponsorship menu is visible on load
+  (matching the four programme phases, which were already open).
+
 ## v2.5 — 2026-06-10 · Content update from the design handoff
 
 ### Changed
